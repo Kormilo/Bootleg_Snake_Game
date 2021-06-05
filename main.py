@@ -90,6 +90,9 @@ running = True
 moving = True
 lastKey = None
 score = 0
+snake_movement_list = [(PLAYER_SPAWN_X-40, PLAYER_SPAWN_Y), (PLAYER_SPAWN_X-20, PLAYER_SPAWN_Y), (PLAYER_SPAWN_X, PLAYER_SPAWN_Y)]
+last_coords = ""
+snake_body = pygame.draw.rect(WIN, PLAYER_COLOR, (PLAYER_SPAWN_X - 20, PLAYER_SPAWN_Y, PLAYER_WIDTH, PLAYER_HEIGHT))
 
 while running:
     pygame.time.delay(150)
@@ -100,6 +103,8 @@ while running:
             print("Congrats you quit loser!")
         if event.type == pygame.KEYDOWN:
             move = snakes_Moves.get(event.key, move)
+
+    # If else statement to check if snake has hit edge: if true will end the game loop
     if snake.clipline(top_Line):
         running = False
         print("You hit the TOP Doofas")
@@ -112,17 +117,34 @@ while running:
     elif snake.clipline(bottom_Line):
         running = False
         print("You hit the BOTTOM Doofas")
+
+    # if statement checks if food is spawned if none is currently on the board spawn at a random location
     if snake.contains(food):
         snake.union(food)
         is_food_spawned = False
         score += 1
         print(f"the score is {score}")
+    snake_movement_list.append((snake.x, snake.y))
+    for coords in snake_movement_list:
+        if last_coords == coords:
+            if len(snake_movement_list) > 10:
+                running = False
+        elif len(snake_movement_list) > score + 3:
+            snake_movement_list.pop(0)
+        last_coords = coords
 
+    print(snake_body)
+    print(snake_movement_list[0])
     food_generator(is_food_spawned)
     snake.move_ip(move)
     snake.clamp_ip(WIN_r)
+    if len(snake_movement_list) > 3:
+        snake_movement_list.reverse()
+        snake_body.move_ip(snake_movement_list[(score+2)])
+        snake_body.clamp_ip(WIN_r)
     pygame.Surface.blit(WIN, background, ORIGIN)
     pygame.draw.rect(WIN, PLAYER_COLOR, snake)
+    pygame.draw.rect(WIN, PLAYER_COLOR, snake_body)
     pygame.draw.rect(WIN, FOOD_COLOR, food)
     pygame.display.update()
 
