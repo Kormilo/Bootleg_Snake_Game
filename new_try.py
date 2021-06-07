@@ -47,10 +47,37 @@ class Snake(pygame.sprite.Sprite):
             if event.type == pygame.KEYDOWN:
                 self.currentmove = snakes_moves.get(event.key, self.currentmove)
 
+    def food_collision(self, food_x, food_y):
+        global is_food_not_spawned
+        global score
+        food_x = food_x
+        food_y = food_y
+        if self.rect.x == food_x and self.rect.y == food_y:
+            is_food_not_spawned = True
+            score += 1
+
     def update(self):
         self.rect.move_ip(self.currentmove)
         self.rect.clamp_ip(WIN_r)
         pygame.draw.rect(WIN, self.color, self.rect)
+
+
+class SnakeBody(pygame.sprite.Sprite):
+    def __init__(self, last_x, last_y, player_width, player_height, color, current_score):
+        super().__init__()
+        self.last_x = last_x
+        self.last_y = last_y
+        self.player_width = player_width
+        self.player_height = player_height
+        self.player_color = color
+        self.snake_length = current_score
+        self.image = pygame.Surface([player_width, player_height])
+        self.image.fill(self.player_color)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (self.last_x, self.last_y)
+
+    def spawn_body(self):
+        pygame.draw.rect(WIN, self.player_color, self.rect)
 
 
 class Food(pygame.sprite.Sprite):
@@ -127,21 +154,45 @@ PLAYER_SPEED = 20
 FOOD_COLOR = (255, 192, 203)
 is_food_not_spawned = True
 food = Food()
+score = 0
 
-all_sprites = pygame.sprite.Group()
+
 snake = Snake(PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_SPAWN_X, PLAYER_SPAWN_Y, PLAYER_COLOR)
-all_sprites.add(food)
-all_sprites.add(snake)
+snake_body = SnakeBody(snake.rect.x, snake.rect.y, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_COLOR, score)
+snake_tail = SnakeBody(snake_body.rect.x, snake_body.rect.y, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_COLOR, score)
 snake_group = pygame.sprite.Group()
 snake_group.add(snake)
+snake_group.add(snake_body)
+
 food_group = pygame.sprite.Group()
 food_group.add(food)
+all_sprites = pygame.sprite.Group()
+all_sprites.add(food)
+all_sprites.add(snake)
+
+snakes_past_moves = []
 running = True
 while running:
     pygame.time.delay(150)
     pygame.Surface.blit(WIN, background, ORIGIN)
     snake.move_snake()
+    snakes_past_moves.append((snake.rect.x, snake.rect.y))
+    # Believe it or not this tracks the past movements of the snake
+    if len(snakes_past_moves) > score +2:
+        snakes_past_moves.reverse()
+        snakes_past_moves.pop(-1)
+        snakes_past_moves.reverse()
     snake.wall_collision()
+    snake.food_collision(food.food_coords_x, food.food_coords_y)
+
+    for x in range(len(snakes_past_moves)):
+        snake_body = SnakeBody(snakes_past_moves[x][0], snakes_past_moves[x][1], PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_COLOR, score)
+        snake_body.spawn_body()
+    if score > 0:
+        for x in range(len(snakes_past_moves)-1):
+            if (snake.rect.x, snake.rect.y) == snakes_past_moves[x]:
+                running = False
+                print("Congrats Doofas you ate yourself.")
 
     # Update
     all_sprites.update()
