@@ -203,6 +203,7 @@ while running:
                 print("Congrats Doofas you ate yourself.")
 
     # Love yourself <3
+    # Hi
     # Update
     all_sprites.update()
 
