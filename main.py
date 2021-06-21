@@ -41,6 +41,14 @@ class Snake(pygame.sprite.Sprite):
             pygame.K_s: (0, 20),
             pygame.K_a: (-20, 0),
             pygame.K_d: (20, 0)}
+        if currentmove == snakes_moves[pygame.K_w]:
+            snakes_moves[pygame.K_s] = snakes_moves[pygame.K_w]
+        if currentmove == snakes_moves[pygame.K_s]:
+            snakes_moves[pygame.K_w] = snakes_moves[pygame.K_s]
+        if currentmove == snakes_moves[pygame.K_a]:
+            snakes_moves[pygame.K_d] = snakes_moves[pygame.K_a]
+        if currentmove == snakes_moves[pygame.K_d]:
+            snakes_moves[pygame.K_a] = snakes_moves[pygame.K_d]
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
